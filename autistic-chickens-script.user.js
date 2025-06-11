@@ -220,7 +220,8 @@ Add comment
 
   setInterval(() => {
     if (autoSellActive) sellSkins();
-  }, secondsToSell * 1000);
+  }, Math.max(1000, secondsToSell * 1000));
+
   
 
   async function getBalance() {
@@ -356,6 +357,35 @@ Add comment
     }
   };
 
+  const autoCollectVault = async () => {
+  while (true) {
+    if (vaultActive && window.sockets.length > 0) {
+      try {
+        window.sockets[window.sockets.length - 1].send('42["collectVault"]');
+      } catch (e) {
+        console.warn("Vault collect error:", e);
+      }
+    }
+    await sleep(60000);
+  }
+};
+
+const autoCollectRewards = async () => {
+  while (true) {
+    if (rewardsActive) {
+      try {
+        const buttons = document.querySelectorAll("button");
+        buttons.forEach(b => {
+          if (b.textContent.trim().toLowerCase().includes("claim")) b.click();
+        });
+      } catch (e) {
+        console.warn("Reward collect error:", e);
+      }
+    }
+    await sleep(30000);
+  }
+};
+
   
   window.addEventListener("load", async () => {
     vaultActive = await GM_getValue("vaultActive", false);
@@ -372,5 +402,8 @@ Add comment
     setInterval(tryBuy, BUY_INTERVAL_MS);
     autoCollectVault();
     autoCollectRewards();
+    autoCollectVault();
+    autoCollectRewards();
+
   });
 })();
