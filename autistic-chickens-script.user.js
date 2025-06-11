@@ -4,8 +4,8 @@
 // @version      3.1.9
 // @description  For Funsies
 // @match        https://case-clicker.com/*
-// @updateURL    https://raw.githubusercontent.com/GCHD123/Autistic-Chickens-CCO-Script/main/autistic-chickens.user.js
-// @downloadURL  https://raw.githubusercontent.com/GCHD123/Autistic-Chickens-CCO-Script/main/autistic-chickens.user.js
+// @updateURL    https://raw.githubusercontent.com/GCHD123/Autistic-Chickens-CCO-Script/main/autistic-chickens-script.user.js
+// @downloadURL  https://raw.githubusercontent.com/GCHD123/Autistic-Chickens-CCO-Script/main/autistic-chickens-script.user.js
 // @grant        GM_getValue
 // @grant        GM_setValue
 // ==/UserScript==
