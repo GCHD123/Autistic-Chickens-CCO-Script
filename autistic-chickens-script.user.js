@@ -1,15 +1,14 @@
 // ==UserScript==
 // @name         Autistic Chickens universal script
 // @namespace    custom.autocasebuyer
-// @version      3.1.7
+// @version      3.1.8
 // @description  For Funsies
 // @match        https://case-clicker.com/*
-// @updateURL    https://raw.githubusercontent.com/GCHD123/Autistic-Chickens-CCO-Script/main/autistic-chickens-script.user.js
-// @downloadURL  https://raw.githubusercontent.com/GCHD123/Autistic-Chickens-CCO-Script/main/autistic-chickens-script.user.js
+// @updateURL    https://raw.githubusercontent.com/GCHD123/Autistic-Chickens-CCO-Script/main/autistic-chickens.user.js
+// @downloadURL  https://raw.githubusercontent.com/GCHD123/Autistic-Chickens-CCO-Script/main/autistic-chickens.user.js
 // @grant        GM_getValue
 // @grant        GM_setValue
 // ==/UserScript==
-
 
 (function () {
   'use strict';
@@ -64,6 +63,43 @@
     });
     btn.onclick = onClick;
     return btn;
+  }
+
+  function setupSellCasesButton() {
+    const btn = createButton("Sell All Cases", async () => {
+      const confirmSell = confirm("Are you sure?");
+      if (!confirmSell) return;
+
+      btn.disabled = true;
+      btn.textContent = "Selling...";
+
+      const resCases = await fetch(`${API_BASE}/cases/cases`);
+      const cases = await resCases.json();
+
+      const resInv = await fetch(`${API_BASE}/cases`);
+      const owned = await resInv.json();
+
+      for (const item of cases) {
+        const ownedCase = owned.find(o => o._id === item._id);
+        if (ownedCase && ownedCase.amount > 0) {
+          await fetch(`${API_BASE}/cases`, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: item._id, amount: ownedCase.amount, type: "case" })
+          });
+          totalsold += ownedCase.amount;
+          totalmoney += item.price * ownedCase.amount;
+        }
+      }
+
+      const profit = Math.round(totalmoney * 0.7);
+      alert(`Sold ${totalsold} cases for a total of $${profit}`);
+      btn.disabled = false;
+      btn.textContent = "Sell All Cases";
+      totalsold = 0;
+      totalmoney = 0;
+    });
+    buttonContainer.appendChild(btn);
   }
 
   function setupStuffMenu() {
@@ -210,40 +246,6 @@
       menu.appendChild(toggleBtn);
       menu.appendChild(betInput);
       document.body.appendChild(menu);
-    });
-    buttonContainer.appendChild(btn);
-  }
-
-  function setupSellCasesButton() {
-    const btn = createButton("Sell All Cases", async () => {
-      btn.disabled = true;
-      btn.textContent = "Selling...";
-
-      const resCases = await fetch(`${API_BASE}/cases/cases`);
-      const cases = await resCases.json();
-
-      const resInv = await fetch(`${API_BASE}/cases`);
-      const owned = await resInv.json();
-
-      for (const item of cases) {
-        const ownedCase = owned.find(o => o._id === item._id);
-        if (ownedCase && ownedCase.amount > 0) {
-          await fetch(`${API_BASE}/cases`, {
-            method: "DELETE",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id: item._id, amount: ownedCase.amount, type: "case" })
-          });
-          totalsold += ownedCase.amount;
-          totalmoney += item.price * ownedCase.amount;
-        }
-      }
-
-      const profit = Math.round(totalmoney * 0.7);
-      alert(`Sold ${totalsold} cases for a total of $${profit}`);
-      btn.disabled = false;
-      btn.textContent = "Sell All Cases";
-      totalsold = 0;
-      totalmoney = 0;
     });
     buttonContainer.appendChild(btn);
   }
