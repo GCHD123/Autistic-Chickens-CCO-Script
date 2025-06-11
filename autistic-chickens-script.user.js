@@ -1,24 +1,26 @@
 // ==UserScript==
 // @name         Autistic Chickens universal script
 // @namespace    custom.autocasebuyer
-// @version      3.1.8
+// @version      3.1.9
 // @description  For Funsies
 // @match        https://case-clicker.com/*
 // @updateURL    https://raw.githubusercontent.com/GCHD123/Autistic-Chickens-CCO-Script/main/autistic-chickens.user.js
 // @downloadURL  https://raw.githubusercontent.com/GCHD123/Autistic-Chickens-CCO-Script/main/autistic-chickens.user.js
 // @grant        GM_getValue
 // @grant        GM_setValue
-//
-// Credits for parts of the script go to Miggy
-//
 // ==/UserScript==
 
 (function () {
   'use strict';
 
   const API_BASE = "https://case-clicker.com/api";
-  const BUY_INTERVAL_MS = 60000;
+  const BUY_INTERVAL_MS = 30000;
   const REWARDS_INTERVAL_MS = 30000;
+
+  let price = 250;
+  let secondsToSell = 15;
+  let sellForMoney = false;
+  let autoSellActive = false;
 
   let enabledAutoBuyer = false;
   let creatingCoinflip = false;
@@ -68,47 +70,11 @@
     return btn;
   }
 
-  function setupSellCasesButton() {
-    const btn = createButton("Sell All Cases", async () => {
-      const confirmSell = confirm("Are you sure?");
-      if (!confirmSell) return;
-
-      btn.disabled = true;
-      btn.textContent = "Selling...";
-
-      const resCases = await fetch(`${API_BASE}/cases/cases`);
-      const cases = await resCases.json();
-
-      const resInv = await fetch(`${API_BASE}/cases`);
-      const owned = await resInv.json();
-
-      for (const item of cases) {
-        const ownedCase = owned.find(o => o._id === item._id);
-        if (ownedCase && ownedCase.amount > 0) {
-          await fetch(`${API_BASE}/cases`, {
-            method: "DELETE",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id: item._id, amount: ownedCase.amount, type: "case" })
-          });
-          totalsold += ownedCase.amount;
-          totalmoney += item.price * ownedCase.amount;
-        }
-      }
-
-      const profit = Math.round(totalmoney * 0.7);
-      alert(`Sold ${totalsold} cases for a total of $${profit}`);
-      btn.disabled = false;
-      btn.textContent = "Sell All Cases";
-      totalsold = 0;
-      totalmoney = 0;
-    });
-    buttonContainer.appendChild(btn);
-  }
-
   function setupStuffMenu() {
     const btn = createButton("Stuff", () => {
       const existingMenu = document.getElementById("stuff-menu");
       if (existingMenu) return existingMenu.remove();
+
       const menu = document.createElement("div");
       menu.id = "stuff-menu";
       Object.assign(menu.style, {
@@ -144,12 +110,77 @@
       rewardsBtn.textContent = `Auto Rewards: ${rewardsActive ? "ON" : "OFF"}`;
       rewardsBtn.style.backgroundColor = rewardsActive ? "#0a0" : "#555";
 
+      const autosellSkinsToggle = createButton("AutoSell Skins: OFF", () => {
+        autoSellActive = !autoSellActive;
+        GM_setValue("autoSellActive", autoSellActive);
+        autosellSkinsToggle.textContent = `AutoSell Skins: ${autoSellActive ? "ON" : "OFF"}`;
+        autosellSkinsToggle.style.backgroundColor = autoSellActive ? "#0a0" : "#555";
+      });
+
+      const priceInput = document.createElement("input");
+      priceInput.type = "number";
+      priceInput.value = price;
+      priceInput.placeholder = "Price limit";
+      priceInput.style.padding = "5px";
+      priceInput.onchange = () => {
+        price = Number(priceInput.value);
+        GM_setValue("autoSellPrice", price);
+      };
+
+      const intervalInput = document.createElement("input");
+      intervalInput.type = "number";
+      intervalInput.value = secondsToSell;
+      intervalInput.placeholder = "Interval (s)";
+      intervalInput.style.padding = "5px";
+      intervalInput.onchange = () => {
+        secondsToSell = Number(intervalInput.value);
+        GM_setValue("autoSellInterval", secondsToSell);
+      };
+
+      const currencySelect = document.createElement("select");
+      currencySelect.style.padding = "5px";
+      const optionMoney = new Option("Money", "money");
+      const optionTokens = new Option("Tokens", "tokens");
+      currencySelect.add(optionMoney);
+      currencySelect.add(optionTokens);
+      currencySelect.value = sellForMoney ? "money" : "tokens";
+      currencySelect.onchange = () => {
+        sellForMoney = currencySelect.value === "money";
+        GM_setValue("autoSellCurrency", sellForMoney);
+      };
+
       menu.appendChild(vaultBtn);
       menu.appendChild(rewardsBtn);
+      menu.appendChild(autosellSkinsToggle);
+      menu.appendChild(document.createTextNode("Price Limit:"));
+      menu.appendChild(priceInput);
+      menu.appendChild(document.createTextNode("Interval (s):"));
+      menu.appendChild(intervalInput);
+      menu.appendChild(document.createTextNode("Currency:"));
+      menu.appendChild(currencySelect);
+
       document.body.appendChild(menu);
     });
     buttonContainer.appendChild(btn);
   }
+
+  const sellSkins = async () => {
+    try {
+      const res = await fetch(`/api/inventory`, {
+        method: "DELETE",
+        body: JSON.stringify({ type: "price", value: price, currency: sellForMoney ? "money" : "tokens" }),
+        headers: { "Content-Type": "application/json" },
+      });
+      if (![200, 429].includes(res.status)) sellSkins();
+    } catch (e) {
+      console.warn("AutoSell Skins error:", e);
+    }
+  };
+
+  setInterval(() => {
+    if (autoSellActive) sellSkins();
+  }, secondsToSell * 1000);
+  
 
   async function getBalance() {
     const res = await fetch(`${API_BASE}/me`);
@@ -284,9 +315,15 @@
     }
   };
 
+  
   window.addEventListener("load", async () => {
     vaultActive = await GM_getValue("vaultActive", false);
     rewardsActive = await GM_getValue("rewardsActive", false);
+    autoSellActive = await GM_getValue("autoSellActive", false);
+    price = await GM_getValue("autoSellPrice", price);
+    secondsToSell = await GM_getValue("autoSellInterval", secondsToSell);
+    sellForMoney = await GM_getValue("autoSellCurrency", sellForMoney);
+    
     setupAutoBuyerButton();
     setupCoinflipButton();
     setupSellCasesButton();
