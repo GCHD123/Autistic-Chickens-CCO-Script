@@ -2,11 +2,14 @@
 // @name         Autistic Chickens universal script
 // @namespace    custom.autocasebuyer
 // @version      3.1.7
-// @description  Auto case buying, coinflip, sell all cases, vault auto-collection, and auto rewards
+// @description  For Funsies
 // @match        https://case-clicker.com/*
+// @updateURL    https://raw.githubusercontent.com/GCHD123/Autistic-Chickens-CCO-Script/edit/main/Autistic%20Chickens%20CCO%20Script
+// @downloadURL  https://raw.githubusercontent.com/GCHD123/Autistic-Chickens-CCO-Script/edit/main/Autistic%20Chickens%20CCO%20Script
 // @grant        GM_getValue
 // @grant        GM_setValue
 // ==/UserScript==
+
 
 (function () {
   'use strict';
