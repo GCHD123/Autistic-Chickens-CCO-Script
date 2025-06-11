@@ -8,6 +8,9 @@
 // @downloadURL  https://raw.githubusercontent.com/GCHD123/Autistic-Chickens-CCO-Script/main/autistic-chickens.user.js
 // @grant        GM_getValue
 // @grant        GM_setValue
+//
+// Credits for parts of the script go to Miggy
+//
 // ==/UserScript==
 
 (function () {
