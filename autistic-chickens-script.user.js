@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Autistic Chickens universal script
 // @namespace    custom.autocasebuyer
-// @version      3.1.9
+// @version      4.0.0
 // @description  For Funsies
 // @match        https://case-clicker.com/*
 // @updateURL    https://raw.githubusercontent.com/GCHD123/Autistic-Chickens-CCO-Script/main/autistic-chickens-script.user.js
