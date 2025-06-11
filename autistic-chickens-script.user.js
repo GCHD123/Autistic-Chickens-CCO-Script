@@ -8,6 +8,9 @@
 // @downloadURL  https://raw.githubusercontent.com/GCHD123/Autistic-Chickens-CCO-Script/main/autistic-chickens-script.user.js
 // @grant        GM_getValue
 // @grant        GM_setValue
+//
+// @credits for parts of the script go to Miggy
+//
 // ==/UserScript==
 
 (function () {
@@ -69,6 +72,44 @@
     btn.onclick = onClick;
     return btn;
   }
+  
+  function setupSellCasesButton() {
+    const btn = createButton("Sell All Cases", async () => {
+      const confirmSell = confirm("Are you sure?");Add commentMore actions
+      if (!confirmSell) return;
+
+      btn.disabled = true;
+      btn.textContent = "Selling...";
+
+      const resCases = await fetch(`${API_BASE}/cases/cases`);
+      const cases = await resCases.json();
+
+      const resInv = await fetch(`${API_BASE}/cases`);
+      const owned = await resInv.json();
+
+      for (const item of cases) {
+        const ownedCase = owned.find(o => o._id === item._id);
+        if (ownedCase && ownedCase.amount > 0) {
+          await fetch(`${API_BASE}/cases`, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: item._id, amount: ownedCase.amount, type: "case" })
+          });
+          totalsold += ownedCase.amount;
+          totalmoney += item.price * ownedCase.amount;
+        }
+      }
+
+      const profit = Math.round(totalmoney * 0.7);
+      alert(`Sold ${totalsold} cases for a total of $${profit}`);
+      btn.disabled = false;
+      btn.textContent = "Sell All Cases";
+      totalsold = 0;
+      totalmoney = 0;
+    });
+    buttonContainer.appendChild(btn);
+  }
+Add comment
 
   function setupStuffMenu() {
     const btn = createButton("Stuff", () => {
