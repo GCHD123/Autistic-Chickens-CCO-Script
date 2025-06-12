@@ -1,16 +1,14 @@
 // ==UserScript==
 // @name         Autistic Chickens universal script
 // @namespace    custom.autocasebuyer
-// @version      4.0.0
+// @version      4.0
 // @description  For Funsies
 // @match        https://case-clicker.com/*
-// @updateURL    https://raw.githubusercontent.com/GCHD123/Autistic-Chickens-CCO-Script/main/autistic-chickens-script.user.js
-// @downloadURL  https://raw.githubusercontent.com/GCHD123/Autistic-Chickens-CCO-Script/main/autistic-chickens-script.user.js
+// @updateURL    https://raw.githubusercontent.com/GCHD123/Autistic-Chickens-CCO-Script/main/autistic-chickens.user.js
+// @downloadURL  https://raw.githubusercontent.com/GCHD123/Autistic-Chickens-CCO-Script/main/autistic-chickens.user.js
 // @grant        GM_getValue
 // @grant        GM_setValue
-//
-// @credits for parts of the script go to Miggy
-//
+// credits for parts of the script go to Miggy
 // ==/UserScript==
 
 (function () {
@@ -72,10 +70,9 @@
     btn.onclick = onClick;
     return btn;
   }
-  
-  function setupSellCasesButton() {
+    function setupSellCasesButton() {
     const btn = createButton("Sell All Cases", async () => {
-      const confirmSell = confirm("Are you sure?");Add commentMore actions
+      const confirmSell = confirm("Are you sure?");
       if (!confirmSell) return;
 
       btn.disabled = true;
@@ -109,7 +106,7 @@
     });
     buttonContainer.appendChild(btn);
   }
-Add comment
+
 
   function setupStuffMenu() {
     const btn = createButton("Stuff", () => {
@@ -220,9 +217,8 @@ Add comment
 
   setInterval(() => {
     if (autoSellActive) sellSkins();
-  }, Math.max(1000, secondsToSell * 1000));
+  }, secondsToSell * 1000);
 
-  
 
   async function getBalance() {
     const res = await fetch(`${API_BASE}/me`);
@@ -357,36 +353,6 @@ Add comment
     }
   };
 
-  const autoCollectVault = async () => {
-  while (true) {
-    if (vaultActive && window.sockets.length > 0) {
-      try {
-        window.sockets[window.sockets.length - 1].send('42["collectVault"]');
-      } catch (e) {
-        console.warn("Vault collect error:", e);
-      }
-    }
-    await sleep(60000);
-  }
-};
-
-const autoCollectRewards = async () => {
-  while (true) {
-    if (rewardsActive) {
-      try {
-        const buttons = document.querySelectorAll("button");
-        buttons.forEach(b => {
-          if (b.textContent.trim().toLowerCase().includes("claim")) b.click();
-        });
-      } catch (e) {
-        console.warn("Reward collect error:", e);
-      }
-    }
-    await sleep(30000);
-  }
-};
-
-  
   window.addEventListener("load", async () => {
     vaultActive = await GM_getValue("vaultActive", false);
     rewardsActive = await GM_getValue("rewardsActive", false);
@@ -394,7 +360,7 @@ const autoCollectRewards = async () => {
     price = await GM_getValue("autoSellPrice", price);
     secondsToSell = await GM_getValue("autoSellInterval", secondsToSell);
     sellForMoney = await GM_getValue("autoSellCurrency", sellForMoney);
-    
+
     setupAutoBuyerButton();
     setupCoinflipButton();
     setupSellCasesButton();
@@ -402,8 +368,5 @@ const autoCollectRewards = async () => {
     setInterval(tryBuy, BUY_INTERVAL_MS);
     autoCollectVault();
     autoCollectRewards();
-    autoCollectVault();
-    autoCollectRewards();
-
   });
 })();
