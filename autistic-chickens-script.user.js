@@ -16,7 +16,7 @@
 
   const API_BASE = "https://case-clicker.com/api";
   const BUY_INTERVAL_MS = 30000;
-  const REWARDS_INTERVAL_MS = 30000;
+  const REWARDS_INTERVAL_MS = 5000;
 
   let price = 250;
   let secondsToSell = 15;
@@ -339,20 +339,21 @@
     while (true) {
       if (rewardsActive) {
         try {
-          const claimButtons = document.querySelectorAll("button");
-          claimButtons.forEach(b => {
-            if (b.textContent.trim().toLowerCase().includes("claim")) {
-              b.click();
+          if (window.location.pathname === "/rewards") {
+            const redeemButtons = [...document.querySelectorAll("button")].filter(btn => btn.textContent.trim().toLowerCase() === "redeem" && !btn.disabled);
+            for (const btn of redeemButtons) {
+              btn.click();
+              await sleep(1000); // Wait 1 second between each click
             }
-          });
+            console.log(`Clicked ${redeemButtons.length} redeem buttons.`);
+          }
         } catch (e) {
-          console.warn("Failed to auto-claim rewards:", e);
+          console.warn("Reward collect error:", e);
         }
       }
       await sleep(REWARDS_INTERVAL_MS);
     }
   };
-
   window.addEventListener("load", async () => {
     vaultActive = await GM_getValue("vaultActive", false);
     rewardsActive = await GM_getValue("rewardsActive", false);
